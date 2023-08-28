@@ -1,9 +1,9 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  aws-hello-world
+  back-end-practice
 
-  Sample SAM Template for aws-hello-world
+  Sample SAM Template for back-end-practice
 
 Globals:
   Function:
@@ -11,7 +11,7 @@ Globals:
     MemorySize: 128
 
 Resources:
-  MyApi:
+  MyApi: # API resource
     Type: 'AWS::Serverless::Api'
     Properties:
       StageName: Prod
@@ -19,30 +19,48 @@ Resources:
               swagger: '2.0'
               info:
                 title: My API
-              paths:
-                /items:
-                  get:
-                    responses:
-                      '200':
-                        description: OK
+              paths: # paths that the api has
+                /items: # items path
+                  get: # items GET protocol
                     x-amazon-apigateway-integration:
                       httpMethod: POST
                       type: aws_proxy
-                      uri:
-                        Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MyLambdaFunction.Arn}/invocations
+                      uri: # connect to lambda function resource
+                        Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetLambdaFunction.Arn}/invocations
+                      responses: {}
+                  post: # items POST protocol
+                    x-amazon-apigateway-integration:
+                      httpMethod: POST
+                      type: aws_proxy
+                      uri: # connect to lambda function resource
+                        Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PostLambdaFunction.Arn}/invocations
                       responses: {}
   
-  MyLambdaFunction:
+  GetLambdaFunction: # lambda function resource for GET protocol
     Type: 'AWS::Serverless::Function'
     Properties:
       CodeUri: ./src
-      Handler: get.lambda_handler  # Update this to match your actual handler
-      Runtime: python3.9  # Update to your desired runtime
+      Handler: get.lambda_handler
+      Runtime: python3.9
 
-  MyLambdaFunctionApiInvokePermission:
+  GetLambdaFunctionApiInvokePermission: # permission that allows api to invoke GET protocol lambda function
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref MyLambdaFunction
+      FunctionName: !Ref GetLambdaFunction
+      Principal: apigateway.amazonaws.com
+
+  PostLambdaFunction: # lambda function resource for POST protocol
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: ./src
+      Handler: post.lambda_handler
+      Runtime: python3.9
+
+  PostLambdaFunctionApiInvokePermission: # permission that allows api to invoke POST protocol lambda function
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref PostLambdaFunction
       Principal: apigateway.amazonaws.com
 
