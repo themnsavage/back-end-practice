@@ -35,32 +35,59 @@ Resources:
                       uri: # connect to lambda function resource
                         Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PostLambdaFunction.Arn}/invocations
                       responses: {}
-  
-  GetLambdaFunction: # lambda function resource for GET protocol
+                  put: #items PUT protocol
+                    x-amazon-apigateway-integration:
+                      httpMethod: POST
+                      type: aws_proxy
+                      uri: # connect to lambda function resource
+                        Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PutLambdaFunction.Arn}/invocations
+                      responses: {}
+                  
+  # lambda function resource for GET protocol
+  GetLambdaFunction:
     Type: 'AWS::Serverless::Function'
     Properties:
       CodeUri: ./src
       Handler: get.lambda_handler
       Runtime: python3.9
-
-  GetLambdaFunctionApiInvokePermission: # permission that allows api to invoke GET protocol lambda function
+  
+  # permission that allows api to invoke GET protocol lambda function
+  GetLambdaFunctionApiInvokePermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref GetLambdaFunction
       Principal: apigateway.amazonaws.com
 
-  PostLambdaFunction: # lambda function resource for POST protocol
+  # lambda function resource for POST protocol
+  PostLambdaFunction:
     Type: 'AWS::Serverless::Function'
     Properties:
       CodeUri: ./src
       Handler: post.lambda_handler
       Runtime: python3.9
 
-  PostLambdaFunctionApiInvokePermission: # permission that allows api to invoke POST protocol lambda function
+  # permission that allows api to invoke POST protocol lambda function
+  PostLambdaFunctionApiInvokePermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref PostLambdaFunction
+      Principal: apigateway.amazonaws.com
+
+  # lambda function resource for PUT protocol
+  PutLambdaFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: ./src
+      Handler: put.lambda_handler
+      Runtime: python3.9
+
+  # permission that allows api to invoke PUT protocol lambda function
+  PutLambdaFunctionApiInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref PutLambdaFunction
       Principal: apigateway.amazonaws.com
 
