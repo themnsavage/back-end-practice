@@ -4,7 +4,7 @@ version = 0.1
 
 [default]
 [default.global.parameters]
-stack_name = "aws-hello-world"
+stack_name = "back-end-practice"
 
 [default.build.parameters]
 cached = true
