@@ -11,6 +11,7 @@ Globals:
     MemorySize: 128
 
 Resources:
+  # data base resource
   MyDynamoDBTable:
     Type: 'AWS::Serverless::SimpleTable'
     Properties:
@@ -19,7 +20,8 @@ Resources:
         Name: id
         Type: String
 
-  MyApi: # API resource
+  # API resource
+  MyApi:
     Type: 'AWS::Serverless::Api'
     Properties:
       StageName: Prod
@@ -118,7 +120,7 @@ Resources:
             - logs:PutLogEvents
           Resource: 'arn:aws:logs:*:*:*' # This gives access to all logs, consider narrowing the scope
 
-  # DynamoDB PutItem Managed Policy
+  # DynamoDB Policy
   DynamoDBPutItemPolicy:
     Type: 'AWS::IAM::ManagedPolicy'
     Properties:
