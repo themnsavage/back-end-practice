@@ -11,6 +11,14 @@ Globals:
     MemorySize: 128
 
 Resources:
+  MyDynamoDBTable:
+    Type: 'AWS::Serverless::SimpleTable'
+    Properties:
+      TableName: items
+      PrimaryKey:
+        Name: id
+        Type: String
+
   MyApi: # API resource
     Type: 'AWS::Serverless::Api'
     Properties:
@@ -66,6 +74,10 @@ Resources:
       CodeUri: ./src
       Handler: post.lambda_handler
       Runtime: python3.9
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref MyDynamoDBTable
 
   # permission that allows api to invoke POST protocol lambda function
   PostLambdaFunctionApiInvokePermission:
@@ -91,3 +103,48 @@ Resources:
       FunctionName: !Ref PutLambdaFunction
       Principal: apigateway.amazonaws.com
 
+  # CloudWatch Logs Managed Policy
+  CloudWatchLogsPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      Description: 'Managed Policy for CloudWatch Logs Access'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: 'arn:aws:logs:*:*:*' # This gives access to all logs, consider narrowing the scope
+
+  # DynamoDB PutItem Managed Policy
+  DynamoDBPutItemPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      Description: 'Managed Policy for DynamoDB PutItem'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+          Resource: '*'
+
+  # IAM Role for Lambda with both Managed Policies attached
+  LambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: 'YourLambdaRoleName'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: 
+              - 'lambda.amazonaws.com'
+          Action:
+            - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - !Ref CloudWatchLogsPolicy
+        - !Ref DynamoDBPutItemPolicy
