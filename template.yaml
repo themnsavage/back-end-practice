@@ -30,14 +30,7 @@ Resources:
               info:
                 title: My API
               paths: # paths that the api has
-                /items: # items path
-                  get: # items GET protocol
-                    x-amazon-apigateway-integration:
-                      httpMethod: POST
-                      type: aws_proxy
-                      uri: # connect to lambda function resource
-                        Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetLambdaFunction.Arn}/invocations
-                      responses: {}
+                /items:
                   post: # items POST protocol
                     x-amazon-apigateway-integration:
                       httpMethod: POST
@@ -52,6 +45,14 @@ Resources:
                       uri: # connect to lambda function resource
                         Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PutLambdaFunction.Arn}/invocations
                       responses: {}
+                /items/{id}: # items path
+                  get: # items GET protocol
+                    x-amazon-apigateway-integration:
+                      httpMethod: POST
+                      type: aws_proxy
+                      uri: # connect to lambda function resource
+                        Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetLambdaFunction.Arn}/invocations
+                      responses: {}
                   
   # lambda function resource for GET protocol
   GetLambdaFunction:
@@ -60,6 +61,17 @@ Resources:
       CodeUri: ./src
       Handler: get.lambda_handler
       Runtime: python3.9
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Events:
+        GetResource:
+          Type: Api
+          Properties:
+            Path: /items/{id}
+            Method: get
+            RestApiId: !Ref MyApi
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref MyDynamoDBTable
   
   # permission that allows api to invoke GET protocol lambda function
   GetLambdaFunctionApiInvokePermission:
@@ -131,6 +143,7 @@ Resources:
         - Effect: Allow
           Action:
             - dynamodb:PutItem
+            - dynamodb:GetItem
           Resource: '*'
 
   # IAM Role for Lambda with both Managed Policies attached
