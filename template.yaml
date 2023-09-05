@@ -38,13 +38,6 @@ Resources:
                       uri: # connect to lambda function resource
                         Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PostLambdaFunction.Arn}/invocations
                       responses: {}
-                  put: #items PUT protocol
-                    x-amazon-apigateway-integration:
-                      httpMethod: POST
-                      type: aws_proxy
-                      uri: # connect to lambda function resource
-                        Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PutLambdaFunction.Arn}/invocations
-                      responses: {}
                 /items/{id}: # items path
                   get: # items GET protocol
                     x-amazon-apigateway-integration:
@@ -52,6 +45,13 @@ Resources:
                       type: aws_proxy
                       uri: # connect to lambda function resource
                         Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetLambdaFunction.Arn}/invocations
+                      responses: {}
+                  put: #items PUT protocol
+                    x-amazon-apigateway-integration:
+                      httpMethod: POST
+                      type: aws_proxy
+                      uri: # connect to lambda function resource
+                        Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PutLambdaFunction.Arn}/invocations
                       responses: {}
                   
   # lambda function resource for GET protocol
@@ -108,6 +108,17 @@ Resources:
       CodeUri: ./src
       Handler: put.lambda_handler
       Runtime: python3.9
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Events:
+        GetResource:
+          Type: Api
+          Properties:
+            Path: /items/{id}
+            Method: put
+            RestApiId: !Ref MyApi
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref MyDynamoDBTable
 
   # permission that allows api to invoke PUT protocol lambda function
   PutLambdaFunctionApiInvokePermission:
@@ -144,6 +155,7 @@ Resources:
           Action:
             - dynamodb:PutItem
             - dynamodb:GetItem
+            - dynamodb:UpdateItem
           Resource: '*'
 
   # IAM Role for Lambda with both Managed Policies attached

@@ -9,7 +9,7 @@ def lambda_handler(event, context):
     body = json.loads(event["body"])
     item = {
         'id': body['id'],
-        'data': body['data']
+        'name': body['name']
     }
 
     response = table.put_item(Item=item)
